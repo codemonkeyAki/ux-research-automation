@@ -1,20 +1,33 @@
 name: Jira Poller
+
 on:
   schedule:
     - cron: '*/5 * * * *'
+  workflow_dispatch:
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  workflow_dispatch:
+
+concurrency:
+  group: jira-poller
+  cancel-in-progress: true
+
 jobs:
   poll:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: 'npm'
+
       - run: npm install
       - run: npm run build
+
       - run: npm run poll-jira
         env:
           JIRA_HOST: ${{ secrets.JIRA_HOST }}
